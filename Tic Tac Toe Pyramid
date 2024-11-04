@@ -1,0 +1,156 @@
+import 'package:flutter/material.dart';
+
+void main() => runApp(TicTacToePyramid());
+
+class TicTacToePyramid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Tic Tac Toe Pyramid',
+      home: PyramidGame(),
+    );
+  }
+}
+
+class PyramidGame extends StatefulWidget {
+  @override
+  _PyramidGameState createState() => _PyramidGameState();
+}
+
+class _PyramidGameState extends State<PyramidGame> {
+  List<List<String?>> board = [
+    [null],
+    [null, null, null],
+    [null, null, null, null, null],
+    [null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null],
+  ];
+  String currentPlayer = "X";
+
+  void _makeMove(int row, int col) {
+    if (row < board.length &&
+        col < board[row].length &&
+        board[row][col] == null) {
+      setState(() {
+        board[row][col] = currentPlayer;
+        if (_checkWin(row, col)) {
+          _showWinDialog(currentPlayer);
+        } else {
+          currentPlayer = currentPlayer == "X" ? "O" : "X";
+        }
+      });
+    }
+  }
+
+  bool _checkWin(int row, int col) {
+    String player = board[row][col]!;
+    if (_checkDirection(row, col, 0, 1, player) ||
+        _checkDirection(row, col, 1, 0, player)) {
+      return true;
+    }
+    if (_checkDirection(row, col, 1, 1, player) ||
+        _checkDirection(row, col, 1, -1, player)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool _checkDirection(
+      int row, int col, int rowDelta, int colDelta, String player) {
+    int count = 1;
+
+    count += _countInDirection(row, col, rowDelta, colDelta, player);
+    count += _countInDirection(row, col, -rowDelta, -colDelta, player);
+
+    return count >= 3;
+  }
+
+  int _countInDirection(
+      int row, int col, int rowDelta, int colDelta, String player) {
+    int count = 0;
+    while (true) {
+      row += rowDelta;
+      col += colDelta;
+
+      if (row < 0 ||
+          row >= board.length ||
+          col < 0 ||
+          col >= board[row].length ||
+          board[row][col] != player) {
+        break;
+      }
+      count++;
+    }
+    return count;
+  }
+
+  void _showWinDialog(String winner) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Victory!'),
+          content: Text('$winner won!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _resetGame();
+              },
+              child: Text('Play again'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _resetGame() {
+    setState(() {
+      board = [
+        [null],
+        [null, null, null],
+        [null, null, null, null, null],
+        [null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null, null],
+      ];
+      currentPlayer = "X";
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Tic Tac Toe Pyramid')),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(5, (row) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(row * 2 + 1, (col) {
+              return GestureDetector(
+                onTap: () => _makeMove(row, col),
+                child: Container(
+                  margin: EdgeInsets.all(0),
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.black, width: 1),
+                  ),
+                  child: Center(
+                    child: Text(
+                      board[row][col] ?? "",
+                      style: TextStyle(fontSize: 24, color: Colors.black),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          );
+        }),
+      ),
+    );
+  }
+}
